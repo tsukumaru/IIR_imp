@@ -2,9 +2,13 @@
  * main
  */
 object Main {
-  def main = {
+  def main(args: Array[String]) = {
+    //mainの中身は適当
     val i = new Indexing("chaps/")
-
-    println(i.makeTermAndDocIDPair(0)._2)
+    val a = i.extractContent("chaps/1.1.html")
+    val b = i.removeHTMLTag(a)
+    val c = i.translateIntoTerms(b)
+    //i.makeTermAndDocIDPair.foreach(println(_))
+    println(c.deep)
   }
 }

@@ -51,7 +51,8 @@ class Indexing(dirPath: String) {
    * @return 単語の配列
    */
   def translateIntoTerms(content: String): Array[String] =
-    content.split(" {1,}").drop(1)
+    """[a-zA-Z]+""".r.findAllMatchIn(content)
+      .map(_.toString).toArray
 
   /**
    * 文字列を単語に分け、小文字に直して返す
@@ -59,14 +60,15 @@ class Indexing(dirPath: String) {
    * @return 単語の配列
    */
   def translateIntoLowerTerms(content: String): Array[String] =
-    content.split(" {1,}").drop(1).map(_.toLowerCase)
+    """[a-zA-Z]+""".r.findAllMatchIn(content)
+      .map(_.toString.toLowerCase).toArray
 
   /**
    * 単語と文書IDのペアを作る
    * @return 単語と文書IDのペアの配列
    */
   def makeTermAndDocIDPair: Array[(String, Int)] = {
-    //文書の全ての単語を取得
+    //文書の章ごとの全ての単語を取得
     val allTerms: Array[Array[String]] = files.map(_.getPath)
                                         .map(extractContent(_))
                                         .map(removeHTMLTag(_))
