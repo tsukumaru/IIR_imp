@@ -50,7 +50,7 @@ class Indexing(dirPath: String) {
    * @param content
    * @return 単語の配列
    */
-  def translateIntoTerms(content: String): Array[String] =
+  def toTerms(content: String): Array[String] =
     """[a-zA-Z]+""".r.findAllMatchIn(content)
       .map(_.toString).toArray
 
@@ -59,20 +59,20 @@ class Indexing(dirPath: String) {
    * @param content
    * @return 単語の配列
    */
-  def translateIntoLowerTerms(content: String): Array[String] =
+  def toLowerTerms(content: String): Array[String] =
     """[a-zA-Z]+""".r.findAllMatchIn(content)
       .map(_.toString.toLowerCase).toArray
 
   /**
    * 単語と文書IDのペアを作る
-   * @return 単語と文書IDのペアの配列
+   * @return 単語と文書IDの配列のペアの配列
    */
-  def makeTermAndDocIDPair: Array[(String, Int)] = {
+  def makeTermAndDocIDPair: Array[(String, Array[Int])] = {
     //文書の章ごとの全ての単語を取得
     val allTerms: Array[Array[String]] = files.map(_.getPath)
                                         .map(extractContent(_))
                                         .map(removeHTMLTag(_))
-                                        .map(translateIntoLowerTerms(_))
+                                        .map(toLowerTerms(_))
 
     //文書IDとのペアを作成
     files.map(_.getName.split('.')(0).toInt) //章番号を取得 ex. 1.1.html -> 1
@@ -80,6 +80,12 @@ class Indexing(dirPath: String) {
       .map(_.swap) //(単語, ID)の順にする
       .flatMap { case (t, n) => //Array[Array[String], Int]からArray[String, Int]に変換
         t.map(new Tuple2(_, n))
-    }
+    }.groupBy(_._1).mapValues(_.map(_._2).sorted).toArray //(単語, DocID[1, 2, 3,...])の組の配列を作る
   }
+
+  /**
+   * filesプロパティのゲッター
+   * @return files
+   */
+  def getFiles: Array[File] = files
 }
