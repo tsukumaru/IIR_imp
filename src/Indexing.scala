@@ -64,10 +64,11 @@ class Indexing(dirPath: String) {
       .map(_.toString.toLowerCase).toArray
 
   /**
-   * 単語と文書IDのペアを作る
-   * @return 単語と文書IDの配列のペアの配列
+   * 転置インデックスを作る
+   * 文書IDは1.1, 1.2.3,...のような形
+   * @return 転置インデックス（単語と文書IDの配列のMap）
    */
-  def makeTermAndDocIDPair: Array[(String, Array[Int])] = {
+  def makeInvertedIndex: Map[String, Array[String]] = {
     //文書の章ごとの全ての単語を取得
     val allTerms: Array[Array[String]] = files.map(_.getPath)
                                         .map(extractContent(_))
@@ -75,12 +76,12 @@ class Indexing(dirPath: String) {
                                         .map(toLowerTerms(_))
 
     //文書IDとのペアを作成
-    files.map(_.getName.split('.')(0).toInt) //章番号を取得 ex. 1.1.html -> 1
+    files.map(_.getName.split(".[h]")(0)) //章番号を取得 ex. 1.1.html -> 1
       .zip(allTerms) //単語とセットでペアにする ex. [(1, allTerms(0)), (1, allTerms(1)), ...]
       .map(_.swap) //(単語, ID)の順にする
       .flatMap { case (t, n) => //Array[Array[String], Int]からArray[String, Int]に変換
         t.map(new Tuple2(_, n))
-    }.groupBy(_._1).mapValues(_.map(_._2).sorted).toArray //(単語, DocID[1, 2, 3,...])の組の配列を作る
+    }.groupBy(_._1).mapValues(_.map(_._2).distinct.sorted) //(単語, DocID[1, 2, 3,...])の組を作る
   }
 
   /**
